@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Steering Committee Copilot</title>
+
+<style>
+
+body{
+font-family:Arial,Helvetica,sans-serif;
+background:#eef2f7;
+margin:0;
+}
+
+header{
+background:#003366;
+color:white;
+padding:25px;
+text-align:center;
+}
+
+.container{
+width:90%;
+max-width:1300px;
+margin:auto;
+padding:30px;
+}
+
+.card{
+background:white;
+padding:25px;
+border-radius:10px;
+box-shadow:0 5px 15px rgba(0,0,0,.15);
+margin-bottom:25px;
+}
+
+label{
+display:block;
+font-weight:bold;
+margin-top:15px;
+}
+
+input,textarea,select{
+
+width:100%;
+padding:10px;
+margin-top:6px;
+border:1px solid #ccc;
+border-radius:6px;
+font-size:15px;
+
+}
+
+textarea{
+height:100px;
+}
+
+button{
+
+background:#0057B8;
+color:white;
+padding:14px 30px;
+border:none;
+border-radius:8px;
+font-size:17px;
+cursor:pointer;
+margin-top:25px;
+
+}
+
+button:hover{
+background:#003f8a;
+}
+
+.output{
+background:#F8FAFD;
+padding:20px;
+border-left:6px solid #0057B8;
+margin-top:30px;
+line-height:1.7;
+white-space:pre-wrap;
+}
+
+.status{
+
+font-weight:bold;
+padding:5px 12px;
+border-radius:5px;
+display:inline-block;
+
+}
+
+.green{
+background:#c8f7c5;
+}
+
+.amber{
+background:#ffe9a8;
+}
+
+.red{
+background:#ffb8b8;
+}
+
+.footer{
+
+text-align:center;
+padding:20px;
+color:#666;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<h1>🤖 AI Steering Committee Copilot</h1>
+
+<p>Enterprise Executive Reporting Assistant</p>
+
+</header>
+
+<div class="container">
+
+<div class="card">
+
+<h2>Project Information</h2>
+
+<label>Project Name</label>
+
+<input id="project">
+
+<label>Current RAG Status</label>
+
+<select id="rag">
+
+<option>Green</option>
+
+<option>Amber</option>
+
+<option>Red</option>
+
+</select>
+
+<label>Budget Status</label>
+
+<input id="budget">
+
+<label>Timeline</label>
+
+<input id="timeline">
+
+<label>Top Risks</label>
+
+<textarea id="risks"></textarea>
+
+<label>Vendor Update</label>
+
+<textarea id="vendor"></textarea>
+
+<label>Decisions Required</label>
+
+<textarea id="decisions"></textarea>
+
+<button onclick="generateReport()">Generate Steering Committee Pack</button>
+
+<div id="report" class="output" style="display:none;"></div>
+
+</div>
+
+</div>
+
+<div class="footer">
+
+Created by Bharani Bussari | AI Program Director Suite
+
+</div>
+
+<script>
+
+function generateReport(){
+
+const project=document.getElementById("project").value;
+
+const rag=document.getElementById("rag").value;
+
+const budget=document.getElementById("budget").value;
+
+const timeline=document.getElementById("timeline").value;
+
+const risks=document.getElementById("risks").value;
+
+const vendor=document.getElementById("vendor").value;
+
+const decisions=document.getElementById("decisions").value;
+
+let colour="green";
+
+if(rag=="Amber") colour="amber";
+
+if(rag=="Red") colour="red";
+
+document.getElementById("report").style.display="block";
+
+document.getElementById("report").innerHTML=
+
+`
+
+<h2>Executive Steering Committee Report</h2>
+
+<p><strong>Project:</strong> ${project}</p>
+
+<p><strong>Overall Status:</strong>
+
+<span class="status ${colour}">${rag}</span>
+
+</p>
+
+<hr>
+
+<h3>Executive Summary</h3>
+
+<p>
+
+The project remains <strong>${rag}</strong>.
+
+Budget status is <strong>${budget}</strong>.
+
+Current timeline is <strong>${timeline}</strong>.
+
+The program team continues monitoring delivery and implementing mitigation actions.
+
+</p>
+
+<h3>Top Risks</h3>
+
+<p>${risks}</p>
+
+<h3>Vendor Update</h3>
+
+<p>${vendor}</p>
+
+<h3>Executive Decisions Required</h3>
+
+<p>${decisions}</p>
+
+<h3>AI Recommendations</h3>
+
+<ul>
+
+<li>Prioritise high-impact risks.</li>
+
+<li>Escalate unresolved vendor issues.</li>
+
+<li>Review critical path activities weekly.</li>
+
+<li>Confirm executive decisions before next sprint.</li>
+
+<li>Communicate status to all key stakeholders.</li>
+
+</ul>
+
+<h3>Talking Points for Sponsor</h3>
+
+<ul>
+
+<li>Overall delivery confidence remains aligned with project objectives.</li>
+
+<li>Focus executive discussion on risks requiring decisions.</li>
+
+<li>Validate resource availability.</li>
+
+<li>Review financial forecast.</li>
+
+<li>Agree next governance checkpoint.</li>
+
+</ul>
+
+`;
+
+}
+
+</script>
+
+</body>
+</html>
