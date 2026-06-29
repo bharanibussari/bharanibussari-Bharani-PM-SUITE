@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Risk Radar · Bharani PM Intelligence Suite</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --navy:     #0F1F3D;
+    --navy2:    #1A3260;
+    --teal:     #1D6FA4;
+    --slate:    #374151;
+    --muted:    #6B7280;
+    --border:   #E5E7EB;
+    --bg:       #F8FAFC;
+    --white:    #FFFFFF;
+    --red:      #DC2626;
+    --amber:    #D97706;
+    --green:    #16A34A;
+    --red-bg:   #FEF2F2;
+    --amb-bg:   #FFFBEB;
+    --grn-bg:   #F0FDF4;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--slate);
+    min-height: 100vh;
+  }
+
+  /* ── Header ─────────────────────────── */
+  header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .hdr-left .eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #7EB8D8;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+
+  .hdr-left h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+
+  .hdr-left .sub {
+    font-size: 12px;
+    color: #93C5D8;
+    margin-top: 2px;
+  }
+
+  .hdr-right {
+    display: flex;
+    gap: 20px;
+  }
+
+  .hstat {
+    text-align: center;
+  }
+
+  .hstat .v {
+    font-size: 22px;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    color: #fff;
+  }
+
+  .hstat .l {
+    font-size: 10px;
+    color: #93C5D8;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .hstat .v.red   { color: #F87171; }
+  .hstat .v.amber { color: #FCD34D; }
+  .hstat .v.green { color: #4ADE80; }
+
+  /* ── Layout ─────────────────────────── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+    padding: 24px 32px;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
+  /* ── Heat map ─────────────────────────── */
+  .panel {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .panel-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-head h2 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .panel-body {
+    padding: 20px;
+  }
+
+  /* Grid */
+  .grid-wrap {
+    position: relative;
+    display: grid;
+    grid-template-columns: 28px repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr) 28px;
+    gap: 4px;
+    aspect-ratio: 1 / 1;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .y-label {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 6px;
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .x-label {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 4px;
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .cell {
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 3px;
+    padding: 4px;
+  }
+
+  .cell:hover { transform: scale(1.04); box-shadow: 0 2px 12px rgba(0,0,0,0.12); z-index: 2; }
+
+  /* Cell colours by risk zone */
+  .zone-low    { background: #DCFCE7; }
+  .zone-medium { background: #FEF9C3; }
+  .zone-high   { background: #FEE2E2; }
+  .zone-critical{ background: #FECACA; }
+
+  /* Risk dot */
+  .rdot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.15s;
+    flex-shrink: 0;
+  }
+
+  .rdot:hover { transform: scale(1.15); }
+  .rdot.HIGH     { background: #DC2626; }
+  .rdot.CRITICAL { background: #7F1D1D; }
+  .rdot.MEDIUM   { background: #D97706; }
+  .rdot.LOW      { background: #16A34A; }
+
+  /* Axis titles */
+  .axis-title-y {
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  .axis-title-x {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 10px;
+  }
+
+  /* ── Right panel ─────────────────────────── */
+  .right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Risk list */
+  .risk-item {
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    background: var(--white);
+  }
+
+  .risk-item:hover, .risk-item.selected {
+    border-color: var(--teal);
+    background: #EFF8FF;
+  }
+
+  .risk-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .risk-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--navy);
+    flex: 1;
+  }
+
+  .severity-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .badge-HIGH     { background: #FEE2E2; color: #B91C1C; }
+  .badge-CRITICAL { background: #FECACA; color: #7F1D1D; }
+  .badge-MEDIUM   { background: #FEF3C7; color: #92400E; }
+  .badge-LOW      { background: #DCFCE7; color: #14532D; }
+
+  .risk-meta {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* Detail card */
+  .detail-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    flex: 1;
+  }
+
+  .detail-head {
+    background: var(--navy);
+    padding: 14px 18px;
+  }
+
+  .detail-head .dt {
+    font-size: 11px;
+    color: #93C5D8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+
+  .detail-head .dn {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .detail-body {
+    padding: 16px 18px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--slate);
+  }
+
+  .detail-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .detail-lbl {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    min-width: 80px;
+    padding-top: 1px;
+  }
+
+  .detail-val {
+    font-size: 12px;
+    color: var(--slate);
+    flex: 1;
+  }
+
+  .ai-section {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .ai-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--teal);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .ai-text {
+    font-size: 12px;
+    color: var(--slate);
+    line-height: 1.7;
+    background: var(--bg);
+    border-radius: 6px;
+    padding: 10px 12px;
+    border-left: 3px solid var(--teal);
+    min-height: 40px;
+  }
+
+  .ai-text.loading {
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  /* Add risk form */
+  .add-form {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .add-form-head {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .add-form-body {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  input[type=text], select, textarea {
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--slate);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input[type=text]:focus, select:focus, textarea:focus {
+    border-color: var(--teal);
+    background: var(--white);
+  }
+
+  textarea { resize: vertical; min-height: 60px; }
+
+  .btn-add {
+    width: 100%;
+    padding: 9px;
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.15s;
+  }
+
+  .btn-add:hover { background: var(--teal); }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  .leg-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .leg-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  /* Empty state */
+  .empty-state {
+    padding: 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    font-style: italic;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--navy);
+    color: #fff;
+    font-size: 12px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  footer {
+    text-align: center;
+    font-size: 11px;
+    color: #9CA3AF;
+    padding: 12px 32px 28px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-left">
+    <div class="eyebrow">Bharani PM Intelligence Suite · Tool 3 of 7</div>
+    <h1>Risk Radar &amp; Heat Map</h1>
+    <div class="sub">Click any risk to view AI-generated mitigation · Add your own risks below</div>
+  </div>
+  <div class="hdr-right">
+    <div class="hstat"><div class="v red" id="hCrit">0</div><div class="l">Critical</div></div>
+    <div class="hstat"><div class="v amber" id="hHigh">0</div><div class="l">High</div></div>
+    <div class="hstat"><div class="v" id="hMed">0</div><div class="l">Medium</div></div>
+    <div class="hstat"><div class="v green" id="hLow">0</div><div class="l">Low</div></div>
+    <div class="hstat"><div class="v" id="hTotal">0</div><div class="l">Total</div></div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- Left: heat map -->
+  <div>
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Probability × Impact Matrix</h2>
+        <div style="font-size:11px;color:var(--muted)">Click a risk dot to analyse</div>
+      </div>
+      <div class="panel-body">
+        <div style="position:relative; padding-left:20px;">
+          <div class="axis-title-y">Probability →</div>
+          <div class="grid-wrap" id="heatGrid"></div>
+          <div class="axis-title-x">Impact →</div>
+        </div>
+        <div class="legend" style="margin-top:14px;">
+          <div class="leg-item"><div class="leg-dot" style="background:#16A34A"></div>Low</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#D97706"></div>Medium</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#DC2626"></div>High</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#7F1D1D"></div>Critical</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk list below heat map -->
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-head"><h2>Risk Register</h2></div>
+      <div style="padding:12px 16px; display:flex; flex-direction:column; gap:8px;" id="riskList">
+        <div class="empty-state">No risks logged yet. Add one using the form →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: detail + add form -->
+  <div class="right-col">
+
+    <!-- Detail -->
+    <div class="detail-card" id="detailCard">
+      <div class="detail-head">
+        <div class="dt">Risk analysis</div>
+        <div class="dn" id="detailName">Select a risk to see AI mitigation advice</div>
+      </div>
+      <div class="detail-body" id="detailBody">
+        <div class="empty-state" style="padding:0">Click any risk dot or row to load its details and AI-generated mitigation strategy.</div>
+      </div>
+    </div>
+
+    <!-- Add risk -->
+    <div class="add-form">
+      <div class="add-form-head">
+        Log a new risk
+        <span style="font-size:10px;font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">AI will generate mitigation advice</span>
+      </div>
+      <div class="add-form-body">
+        <div>
+          <label>Risk title</label>
+          <input type="text" id="fTitle" placeholder="e.g. Key vendor dependency on single resource"/>
+        </div>
+        <div class="form-row">
+          <div>
+            <label>Probability (1–5)</label>
+            <select id="fProb">
+              <option value="1">1 — Rare</option>
+              <option value="2">2 — Unlikely</option>
+              <option value="3" selected>3 — Possible</option>
+              <option value="4">4 — Likely</option>
+              <option value="5">5 — Almost certain</option>
+            </select>
+          </div>
+          <div>
+            <label>Impact (1–5)</label>
+            <select id="fImpact">
+              <option value="1">1 — Negligible</option>
+              <option value="2">2 — Minor</option>
+              <option value="3" selected>3 — Moderate</option>
+              <option value="4">4 — Major</option>
+              <option value="5">5 — Critical</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label>Category</label>
+            <select id="fCat">
+              <option>Schedule</option>
+              <option>Budget</option>
+              <option>Resource</option>
+              <option>Technical</option>
+              <option>Stakeholder</option>
+              <option>Vendor</option>
+              <option>Scope</option>
+              <option>Regulatory</option>
+            </select>
+          </div>
+          <div>
+            <label>Owner</label>
+            <input type="text" id="fOwner" placeholder="e.g. PM / Tech Lead"/>
+          </div>
+        </div>
+        <div>
+          <label>Description (optional)</label>
+          <textarea id="fDesc" placeholder="Brief context about this risk..."></textarea>
+        </div>
+        <button class="btn-add" onclick="addRisk()">+ Log Risk &amp; Generate AI Mitigation</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>Bharani PM Intelligence Suite · Risk Radar · Tool 3 of 7 · bharani-pm-suite.github.io</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+const PROB_LABELS   = ['','Rare','Unlikely','Possible','Likely','Certain'];
+const IMPACT_LABELS = ['','Negligible','Minor','Moderate','Major','Critical'];
+
+let risks = [
+  { id:1, title:'Payroll module P1 defects unresolved', prob:4, impact:5, cat:'Technical',    owner:'Tech Lead',  desc:'3 priority-1 defects in payroll block UAT sign-off. Vendor patch expected 5 Jul.' },
+  { id:2, title:'Data quality failures in source systems', prob:4, impact:4, cat:'Technical',  owner:'Data Arch',  desc:'ETL completion blocked by poor source data; client IT team unresponsive.' },
+  { id:3, title:'Key architect on leave July', prob:3, impact:3, cat:'Resource',    owner:'PM',         desc:'Lead architect on planned annual leave weeks 3–4 of July during critical build phase.' },
+  { id:4, title:'Scope creep from business stakeholders', prob:3, impact:4, cat:'Scope',       owner:'PM',         desc:'Multiple change requests pending; risk of sprint overload in final build sprint.' },
+  { id:5, title:'Budget exhaustion before go-live', prob:4, impact:5, cat:'Budget',      owner:'Director',   desc:'Nova project at 85% budget with 6 weeks delay; risk of overspend without scope reduction.' },
+  { id:6, title:'Vendor SLA breach on infrastructure', prob:2, impact:3, cat:'Vendor',      owner:'PM',         desc:'Cloud vendor SLA at 99.5%; one incident this quarter already consumed 60% of allowance.' },
+];
+
+let nextId = 7;
+let selectedId = null;
+
+const mitigations = {
+  'Technical':    (r) => `Convene an emergency technical review with ${r.owner || 'the delivery team'} within 48 hours. Escalate vendor fix timeline to programme board. Implement parallel workaround stream to maintain UAT schedule. Define a clear go/no-go checkpoint 72 hours before planned sign-off.`,
+  'Resource':     (r) => `Cross-train a backup resource on critical knowledge areas before leave begins. Document all in-flight decisions and technical designs this week. Establish a daily async stand-up cadence with the departing resource to transfer context. Confirm cover arrangement is in place by ${r.owner || 'the PM'}.`,
+  'Budget':       (r) => `Initiate an immediate budget review with the programme sponsor. Present three scenarios: scope reduction, phased delivery, or additional funding request. Freeze all non-critical change requests. Escalate to steering committee with a decision deadline of this week.`,
+  'Scope':        (r) => `Implement a formal change control freeze for the current sprint. All new requests from business stakeholders to be logged and deferred to post-go-live backlog. ${r.owner || 'PM'} to chair a scope triage session with product owner within 5 business days.`,
+  'Stakeholder':  (r) => `Schedule executive sponsor intervention to re-engage the stakeholder group. Establish bi-weekly touchpoints with key decision makers. Map each unresolved dependency to a named stakeholder and track via weekly governance report. Escalate blockers older than 5 days.`,
+  'Vendor':       (r) => `Issue a formal SLA breach notice to the vendor. Request a service improvement plan within 10 business days. Evaluate alternative vendor options as contingency. Insert contractual penalty clause review into next commercial governance session.`,
+  'Schedule':     (r) => `Perform a critical path analysis immediately to identify which tasks can be compressed or parallelised. Present a revised schedule to the steering committee with clear trade-offs. Increase delivery cadence reporting to daily. Engage additional resource if float is less than 5 days.`,
+  'Regulatory':   (r) => `Engage legal and compliance counsel immediately. Map all regulatory requirements to delivery milestones and identify gaps. Do not proceed to go-live without sign-off from the compliance officer. Establish a regulatory risk log as a standing agenda item.`,
+};
+
+function severity(p, i) {
+  const score = p * i;
+  if (score >= 16) return 'CRITICAL';
+  if (score >= 9)  return 'HIGH';
+  if (score >= 4)  return 'MEDIUM';
+  return 'LOW';
+}
+
+function zoneClass(p, i) {
+  const s = severity(p, i);
+  if (s === 'CRITICAL') return 'zone-critical';
+  if (s === 'HIGH')     return 'zone-high';
+  if (s === 'MEDIUM')   return 'zone-medium';
+  return 'zone-low';
+}
+
+function dotColor(s) {
+  return { CRITICAL:'#7F1D1D', HIGH:'#DC2626', MEDIUM:'#D97706', LOW:'#16A34A' }[s];
+}
+
+function buildGrid() {
+  const grid = document.getElementById('heatGrid');
+  grid.innerHTML = '';
+
+  for (let row = 0; row < 7; row++) {
+    for (let col = 0; col < 6; col++) {
+      if (row === 6 && col === 0) { grid.appendChild(Object.assign(document.createElement('div'),{})); continue; }
+      if (col === 0) {
+        const p = 5 - row;
+        const el = document.createElement('div');
+        el.className = 'y-label';
+        el.textContent = p;
+        grid.appendChild(el);
+        continue;
+      }
+      if (row === 6) {
+        const el = document.createElement('div');
+        el.className = 'x-label';
+        el.textContent = col;
+        grid.appendChild(el);
+        continue;
+      }
+      const p = 5 - row;
+      const i = col;
+      const cell = document.createElement('div');
+      cell.className = 'cell ' + zoneClass(p, i);
+      cell.title = `P=${p} I=${i} — ${severity(p,i)}`;
+
+      const here = risks.filter(r => r.prob === p && r.impact === i);
+      here.forEach(r => {
+        const dot = document.createElement('div');
+        dot.className = 'rdot ' + severity(r.prob, r.impact);
+        dot.style.background = dotColor(severity(r.prob, r.impact));
+        dot.textContent = r.id;
+        dot.title = r.title;
+        dot.onclick = (e) => { e.stopPropagation(); selectRisk(r.id); };
+        cell.appendChild(dot);
+      });
+
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function buildList() {
+  const list = document.getElementById('riskList');
+  if (risks.length === 0) {
+    list.innerHTML = '<div class="empty-state">No risks logged yet. Add one using the form →</div>';
+    return;
+  }
+  const sorted = [...risks].sort((a,b) => (b.prob*b.impact) - (a.prob*a.impact));
+  list.innerHTML = sorted.map(r => {
+    const s = severity(r.prob, r.impact);
+    return `<div class="risk-item ${selectedId===r.id?'selected':''}" onclick="selectRisk(${r.id})">
+      <div class="risk-item-top">
+        <span class="risk-name">#${r.id} ${r.title}</span>
+        <span class="severity-badge badge-${s}">${s}</span>
+      </div>
+      <div class="risk-meta">${r.cat} · P:${r.prob} I:${r.impact} · Owner: ${r.owner||'Unassigned'}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateCounters() {
+  const counts = { CRITICAL:0, HIGH:0, MEDIUM:0, LOW:0 };
+  risks.forEach(r => counts[severity(r.prob, r.impact)]++);
+  document.getElementById('hCrit').textContent  = counts.CRITICAL;
+  document.getElementById('hHigh').textContent  = counts.HIGH;
+  document.getElementById('hMed').textContent   = counts.MEDIUM;
+  document.getElementById('hLow').textContent   = counts.LOW;
+  document.getElementById('hTotal').textContent = risks.length;
+}
+
+function selectRisk(id) {
+  selectedId = id;
+  const r = risks.find(x => x.id === id);
+  if (!r) return;
+  const s = severity(r.prob, r.impact);
+  const mitFn = mitigations[r.cat] || mitigations['Technical'];
+  const mit = mitFn(r);
+
+  document.getElementById('detailName').textContent = `#${r.id} — ${r.title}`;
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-row"><span class="detail-lbl">Category</span><span class="detail-val">${r.cat}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Severity</span><span class="detail-val"><span class="severity-badge badge-${s}">${s}</span></span></div>
+    <div class="detail-row"><span class="detail-lbl">Probability</span><span class="detail-val">P${r.prob} — ${PROB_LABELS[r.prob]}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Impact</span><span class="detail-val">I${r.impact} — ${IMPACT_LABELS[r.impact]}</span></div>
+    <div class="detail-row"><span class="detail-lbl">Risk Score</span><span class="detail-val" style="font-family:'DM Mono',monospace;font-weight:600;">${r.prob * r.impact} / 25</span></div>
+    <div class="detail-row"><span class="detail-lbl">Owner</span><span class="detail-val">${r.owner||'Unassigned'}</span></div>
+    ${r.desc ? `<div class="detail-row"><span class="detail-lbl">Context</span><span class="detail-val">${r.desc}</span></div>` : ''}
+    <div class="ai-section">
+      <div class="ai-label">⚡ AI Mitigation Strategy</div>
+      <div class="ai-text">${mit}</div>
+    </div>`;
+
+  buildList();
+}
+
+function addRisk() {
+  const title = document.getElementById('fTitle').value.trim();
+  if (!title) { showToast('Please enter a risk title.'); return; }
+  const r = {
+    id:     nextId++,
+    title,
+    prob:   parseInt(document.getElementById('fProb').value),
+    impact: parseInt(document.getElementById('fImpact').value),
+    cat:    document.getElementById('fCat').value,
+    owner:  document.getElementById('fOwner').value.trim(),
+    desc:   document.getElementById('fDesc').value.trim(),
+  };
+  risks.push(r);
+  document.getElementById('fTitle').value = '';
+  document.getElementById('fDesc').value  = '';
+  document.getElementById('fOwner').value = '';
+  render();
+  selectRisk(r.id);
+  showToast(`Risk #${r.id} logged — ${severity(r.prob, r.impact)}`);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function render() {
+  buildGrid();
+  buildList();
+  updateCounters();
+}
+
+render();
+selectRisk(5);
+</script>
+</body>
+</html>
